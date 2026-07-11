@@ -4,7 +4,7 @@
 > Plan completo de la sesión de planeación: ver Decisions log.
 
 ## Current deliverable
-MVP funcional de la PWA: captura rápida, dashboard con presupuesto y safe-to-spend, escaneo de recibos con foto (API Claude), tab convertidor de monedas, export/import.
+Deploy a hosting estático (GitHub Pages o Vercel) e instalación en el iPhone de Alfonso. El MVP local ya está construido y verificado.
 
 ## Approved / do not touch
 - Decisión de arquitectura: sin login, sin nube, sin build step. Todo en USD.
@@ -16,15 +16,17 @@ MVP funcional de la PWA: captura rápida, dashboard con presupuesto y safe-to-sp
 - Recordatorio diario de registro
 
 ## Open items
-- [ ] Modelo de datos + storage en localStorage
-- [ ] Pantalla de captura rápida (numpad + categorías + toggle Personal/DCF)
-- [ ] Lista de movimientos (editar/borrar)
-- [ ] Dashboard (categoría vs presupuesto, safe-to-spend, tendencia 6 meses)
-- [ ] Escaneo de recibos (cámara + API Claude + confirmación editable)
-- [ ] Tab convertidor de monedas (frankfurter.app, caché offline)
-- [ ] Ajustes (categorías, presupuestos, API key, export/import JSON/CSV)
-- [ ] PWA (manifest + service worker + íconos) y deploy a hosting estático
-- [ ] Prueba real en iPhone (agregar a pantalla de inicio, 1 día de uso)
+- [x] Modelo de datos + storage en localStorage
+- [x] Pantalla de captura rápida (numpad + categorías + toggle Personal/DCF)
+- [x] Lista de movimientos (editar/borrar)
+- [x] Dashboard (categoría vs presupuesto, safe-to-spend, tendencia 6 meses con desglose al tocar)
+- [x] Escaneo de recibos (cámara + API Claude + confirmación editable) — código listo, falta probar con API key y recibos reales
+- [x] Tab convertidor de monedas (open.er-api.com, caché diario en localStorage)
+- [x] Ajustes (categorías editables, presupuestos, API key, export JSON/CSV, import)
+- [x] PWA (manifest + service worker network-first + íconos 180/192/512)
+- [ ] Deploy a GitHub Pages o Vercel (decidir cuál; se necesita URL https para instalar en iPhone)
+- [ ] Pegar API key de Anthropic en Ajustes y probar escaneo con 3-4 recibos reales
+- [ ] Prueba real en iPhone (agregar a pantalla de inicio, 1 día de uso, verificar offline)
 
 ## Decisions log
 - 2026-07-10 · Todo en USD, sin multi-moneda en gastos · Alfonso lo pidió explícito; el convertidor es un tab aparte sin relación con los gastos.
@@ -33,4 +35,4 @@ MVP funcional de la PWA: captura rápida, dashboard con presupuesto y safe-to-sp
 - 2026-07-10 · Ideas de agencia (portal aprobaciones "Aprueba", hub admin "Caja") estacionadas en ../APPS-BRIEF.md.
 
 ## Last session
-- 2026-07-10 · Sesión de planeación + inicio de build. Plan aprobado; carpeta y repo creados.
+- 2026-07-10 · MVP completo construido y verificado en preview a 375px (light + dark): captura en segundos, movimientos con edición, resumen con semáforos y safe-to-spend, gráfica 6 meses, convertidor con tasas reales, export/import. Commit 9b540bb. Se detuvo antes del deploy: falta elegir GitHub Pages vs Vercel y probar escaneo con API key real.
