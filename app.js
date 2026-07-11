@@ -23,7 +23,7 @@ function defaultState() {
     expenses: [], // {id, amount, catId, scope:'personal'|'dcf', note, ts, merchant?}
     categories: DEFAULT_CATEGORIES.slice(),
     budgets: {},  // catId -> monthly USD
-    settings: { apiKey: "", model: "claude-opus-4-8", lastScope: "personal" },
+    settings: { apiKey: "", model: "claude-opus-4-8", lastScope: "personal", theme: "" },
   };
 }
 
@@ -733,6 +733,23 @@ $("#btn-add-cat").addEventListener("click", () => {
   renderCatGrid();
 });
 
+/* Tema de color */
+function applyTheme() {
+  const t = state.settings.theme || "";
+  if (t) document.documentElement.dataset.theme = t;
+  else delete document.documentElement.dataset.theme;
+  $$("#theme-grid button").forEach((b) =>
+    b.setAttribute("aria-pressed", String((b.dataset.theme || "") === t))
+  );
+}
+$("#theme-grid").addEventListener("click", (ev) => {
+  const btn = ev.target.closest("button");
+  if (!btn) return;
+  state.settings.theme = btn.dataset.theme || "";
+  save();
+  applyTheme();
+});
+
 $("#btn-save-key").addEventListener("click", () => {
   state.settings.apiKey = $("#api-key").value.trim();
   save();
@@ -800,6 +817,7 @@ $("#import-input").addEventListener("change", (ev) => {
 /* ============================= Init ============================= */
 
 setCaptureScope(captureScope);
+applyTheme();
 renderAmount();
 renderCatGrid();
 renderList();
