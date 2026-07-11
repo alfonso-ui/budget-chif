@@ -119,6 +119,7 @@ let captureScope = state.settings.lastScope || "personal";
 
 function renderAmount() {
   $("#amount-value").textContent = amountStr === "" ? "0" : amountStr;
+  $("#amount-display").classList.toggle("has-value", amountStr !== "");
 }
 
 $("#numpad").addEventListener("click", (ev) => {
