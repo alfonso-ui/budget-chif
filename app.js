@@ -23,7 +23,7 @@ function defaultState() {
     expenses: [], // {id, amount, catId, scope:'personal'|'dcf', note, ts, merchant?}
     categories: DEFAULT_CATEGORIES.slice(),
     budgets: {},  // catId -> monthly USD
-    settings: { apiKey: "", model: "claude-opus-4-8", lastScope: "personal", theme: "" },
+    settings: { apiKey: "", model: "claude-opus-4-8", lastScope: "personal", theme: "", mode: "" },
   };
 }
 
@@ -259,7 +259,7 @@ function escapeHtml(s) {
 
 /* Filtros de tipo (Movimientos + Resumen) */
 let dashScope = "personal";
-$$(".scope-filter").forEach((group) => {
+$$(".scope-filter[data-for]").forEach((group) => {
   group.addEventListener("click", (ev) => {
     const btn = ev.target.closest("button");
     if (!btn) return;
@@ -733,7 +733,7 @@ $("#btn-add-cat").addEventListener("click", () => {
   renderCatGrid();
 });
 
-/* Tema de color */
+/* Tema de color y modo claro/oscuro */
 function applyTheme() {
   const t = state.settings.theme || "";
   if (t) document.documentElement.dataset.theme = t;
@@ -741,11 +741,24 @@ function applyTheme() {
   $$("#theme-grid button").forEach((b) =>
     b.setAttribute("aria-pressed", String((b.dataset.theme || "") === t))
   );
+  const m = state.settings.mode || "";
+  if (m) document.documentElement.dataset.mode = m;
+  else delete document.documentElement.dataset.mode;
+  $$("#mode-toggle button").forEach((b) =>
+    b.setAttribute("aria-pressed", String((b.dataset.mode || "") === m))
+  );
 }
 $("#theme-grid").addEventListener("click", (ev) => {
   const btn = ev.target.closest("button");
   if (!btn) return;
   state.settings.theme = btn.dataset.theme || "";
+  save();
+  applyTheme();
+});
+$("#mode-toggle").addEventListener("click", (ev) => {
+  const btn = ev.target.closest("button");
+  if (!btn) return;
+  state.settings.mode = btn.dataset.mode || "";
   save();
   applyTheme();
 });
