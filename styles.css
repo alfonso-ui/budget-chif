@@ -65,7 +65,19 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
-input, select { font: inherit; color: var(--ink); }
+/* 16px mínimo en campos: evita el auto-zoom de iOS al enfocar */
+input, select { font: inherit; font-size: 16px; color: var(--ink); }
+
+/* Velo con blur bajo la barra de estado del iPhone (standalone) */
+body::before {
+  content: "";
+  position: fixed; top: 0; left: 0; right: 0;
+  height: env(safe-area-inset-top);
+  background: var(--tabbar-bg);
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  z-index: 30;
+  pointer-events: none;
+}
 
 /* Números y display: SF Rounded en Apple, fallback al sans del sistema */
 .rounded-face, .panel-head h1, .amount-display, .tile-value, .tile-value-sm,
@@ -153,7 +165,7 @@ input, select { font: inherit; color: var(--ink); }
 .note-input, .text-input {
   width: 100%; padding: 12px 14px;
   border: 1px solid var(--border); border-radius: 13px;
-  background: var(--surface); font-size: 15px;
+  background: var(--surface); font-size: 16px;
   margin-bottom: 6px;
   box-shadow: var(--shadow-sm);
 }
@@ -181,7 +193,7 @@ input, select { font: inherit; color: var(--ink); }
 .filter-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 .select {
   padding: 9px 13px; border: 1px solid var(--border); border-radius: 12px;
-  background: var(--surface); font-size: 14px; font-weight: 600;
+  background: var(--surface); font-size: 16px; font-weight: 600;
   appearance: none; -webkit-appearance: none;
   box-shadow: var(--shadow-sm);
 }
@@ -341,10 +353,10 @@ input, select { font: inherit; color: var(--ink); }
   padding: 10px 12px; margin-bottom: 8px;
 }
 .settings-cat-row .emoji-input { width: 42px; text-align: center; border: none; background: transparent; font-size: 20px; }
-.settings-cat-row .name-input { flex: 1; border: none; background: transparent; font-size: 14px; font-weight: 600; min-width: 0; }
+.settings-cat-row .name-input { flex: 1; border: none; background: transparent; font-size: 16px; font-weight: 600; min-width: 0; }
 .settings-cat-row .budget-input {
   width: 86px; text-align: right; border: 1px solid var(--border); border-radius: 9px;
-  padding: 7px 9px; background: var(--page); font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 600;
+  padding: 7px 9px; background: var(--page); font-size: 16px; font-variant-numeric: tabular-nums; font-weight: 600;
 }
 .settings-cat-row .del-cat { color: var(--muted); font-size: 16px; padding: 4px 6px; }
 
