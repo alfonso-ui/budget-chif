@@ -10,6 +10,7 @@ Prueba real en iPhone: instalar desde https://alfonso-ui.github.io/budget-chif/,
 - Decisión de arquitectura: sin login, sin nube, sin build step. Todo en USD.
 
 ## Backlog / parking lot
+- Presupuestos por etiqueta (Personal vs DCF) si Alfonso quiere presupuestar también el gasto del negocio; hoy los presupuestos son por categoría y el filtro del Resumen decide qué gasto cuenta
 - Sincronización entre dispositivos (Supabase) — solo si el hábito pega
 - Import de estados de cuenta del banco (CSV) con categorización asistida
 - Gastos recurrentes/fijos automáticos
