@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gastos">
+<title>Gastos</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<main id="main">
+
+  <!-- ============ TAB: REGISTRAR ============ -->
+  <section class="tab-panel" id="panel-add" data-active="true">
+    <header class="panel-head">
+      <h1>Registrar gasto</h1>
+      <button class="btn-scan" id="btn-scan" type="button" aria-label="Escanear recibo con foto">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Escanear
+      </button>
+      <input type="file" id="scan-input" accept="image/*" capture="environment" hidden>
+    </header>
+
+    <div class="scope-toggle" role="radiogroup" aria-label="Tipo de gasto">
+      <button type="button" class="scope-btn" data-scope="personal" aria-pressed="true">Personal</button>
+      <button type="button" class="scope-btn" data-scope="dcf" aria-pressed="false">DCF</button>
+    </div>
+
+    <div class="amount-display" id="amount-display" aria-live="polite">
+      <span class="currency">$</span><span id="amount-value">0</span>
+    </div>
+
+    <div class="numpad" id="numpad">
+      <button type="button" data-key="1">1</button>
+      <button type="button" data-key="2">2</button>
+      <button type="button" data-key="3">3</button>
+      <button type="button" data-key="4">4</button>
+      <button type="button" data-key="5">5</button>
+      <button type="button" data-key="6">6</button>
+      <button type="button" data-key="7">7</button>
+      <button type="button" data-key="8">8</button>
+      <button type="button" data-key="9">9</button>
+      <button type="button" data-key=".">.</button>
+      <button type="button" data-key="0">0</button>
+      <button type="button" data-key="del" aria-label="Borrar">⌫</button>
+    </div>
+
+    <input type="text" id="note-input" class="note-input" placeholder="Nota (opcional)" autocomplete="off" enterkeyhint="done">
+
+    <p class="cat-hint">Toca una categoría para guardar</p>
+    <div class="cat-grid" id="cat-grid"></div>
+  </section>
+
+  <!-- ============ TAB: MOVIMIENTOS ============ -->
+  <section class="tab-panel" id="panel-list">
+    <header class="panel-head">
+      <h1>Movimientos</h1>
+    </header>
+    <div class="filter-row">
+      <select id="list-month" class="select" aria-label="Mes"></select>
+      <div class="scope-filter" role="radiogroup" aria-label="Filtro de tipo" data-for="list">
+        <button type="button" data-scope="all" aria-pressed="true">Todo</button>
+        <button type="button" data-scope="personal" aria-pressed="false">Personal</button>
+        <button type="button" data-scope="dcf" aria-pressed="false">DCF</button>
+      </div>
+    </div>
+    <div id="list-container"></div>
+  </section>
+
+  <!-- ============ TAB: RESUMEN ============ -->
+  <section class="tab-panel" id="panel-dash">
+    <header class="panel-head">
+      <h1>Resumen</h1>
+    </header>
+    <div class="filter-row">
+      <div class="scope-filter" role="radiogroup" aria-label="Filtro de tipo" data-for="dash">
+        <button type="button" data-scope="all" aria-pressed="false">Todo</button>
+        <button type="button" data-scope="personal" aria-pressed="true">Personal</button>
+        <button type="button" data-scope="dcf" aria-pressed="false">DCF</button>
+      </div>
+    </div>
+
+    <div class="tile" id="tile-sts">
+      <p class="tile-label">Puedes gastar hoy</p>
+      <p class="tile-value" id="sts-today">$0</p>
+      <p class="tile-sub" id="sts-detail"></p>
+    </div>
+
+    <div class="tile-row">
+      <div class="tile tile-half">
+        <p class="tile-label">Gastado este mes</p>
+        <p class="tile-value-sm" id="month-spent">$0</p>
+      </div>
+      <div class="tile tile-half">
+        <p class="tile-label">Esta semana disponible</p>
+        <p class="tile-value-sm" id="sts-week">$0</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">Presupuesto por categoría</h2>
+    <div id="budget-bars"></div>
+
+    <h2 class="section-title">Últimos 6 meses</h2>
+    <div class="chart-card">
+      <div class="bar-chart" id="trend-chart" role="img" aria-label="Gasto total por mes, últimos 6 meses"></div>
+    </div>
+    <div id="trend-breakdown"></div>
+  </section>
+
+  <!-- ============ TAB: CONVERTIDOR ============ -->
+  <section class="tab-panel" id="panel-fx">
+    <header class="panel-head">
+      <h1>Convertidor</h1>
+    </header>
+    <div class="fx-card">
+      <label class="fx-field">
+        <span>Monto</span>
+        <input type="text" inputmode="decimal" id="fx-amount" value="100" autocomplete="off">
+      </label>
+      <div class="fx-currencies">
+        <label class="fx-field">
+          <span>De</span>
+          <select id="fx-from" class="select"></select>
+        </label>
+        <button type="button" id="fx-swap" class="fx-swap" aria-label="Intercambiar monedas">⇅</button>
+        <label class="fx-field">
+          <span>A</span>
+          <select id="fx-to" class="select"></select>
+        </label>
+      </div>
+      <p class="fx-result" id="fx-result" aria-live="polite">…</p>
+      <p class="fx-rate-info" id="fx-info"></p>
+    </div>
+  </section>
+
+  <!-- ============ TAB: AJUSTES ============ -->
+  <section class="tab-panel" id="panel-settings">
+    <header class="panel-head">
+      <h1>Ajustes</h1>
+    </header>
+
+    <h2 class="section-title">Categorías y presupuesto mensual</h2>
+    <p class="hint">El presupuesto es en dólares por mes. Déjalo vacío si la categoría no tiene presupuesto.</p>
+    <div id="settings-cats"></div>
+    <button type="button" class="btn-secondary" id="btn-add-cat">+ Agregar categoría</button>
+
+    <h2 class="section-title">Escaneo de recibos</h2>
+    <p class="hint">Pega tu API key de Anthropic (empieza con sk-ant-). Se guarda solo en este dispositivo.</p>
+    <input type="password" id="api-key" class="text-input" placeholder="sk-ant-..." autocomplete="off">
+    <button type="button" class="btn-secondary" id="btn-save-key">Guardar API key</button>
+
+    <h2 class="section-title">Datos</h2>
+    <div class="btn-group">
+      <button type="button" class="btn-secondary" id="btn-export-json">Exportar respaldo (JSON)</button>
+      <button type="button" class="btn-secondary" id="btn-export-csv">Exportar CSV</button>
+      <button type="button" class="btn-secondary" id="btn-import">Importar respaldo</button>
+      <input type="file" id="import-input" accept=".json,application/json" hidden>
+    </div>
+    <p class="hint" id="data-stats"></p>
+  </section>
+
+</main>
+
+<!-- ============ NAV ============ -->
+<nav class="tabbar" aria-label="Secciones">
+  <button type="button" data-panel="panel-add" aria-current="true">
+    <span class="tab-ico">＋</span><span>Registrar</span>
+  </button>
+  <button type="button" data-panel="panel-list">
+    <span class="tab-ico">☰</span><span>Movimientos</span>
+  </button>
+  <button type="button" data-panel="panel-dash">
+    <span class="tab-ico">◔</span><span>Resumen</span>
+  </button>
+  <button type="button" data-panel="panel-fx">
+    <span class="tab-ico">⇄</span><span>Monedas</span>
+  </button>
+  <button type="button" data-panel="panel-settings">
+    <span class="tab-ico">⚙</span><span>Ajustes</span>
+  </button>
+</nav>
+
+<!-- ============ MODAL: CONFIRMAR ESCANEO / EDITAR ============ -->
+<div class="modal-backdrop" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title">Confirmar gasto</h2>
+    <div class="modal-body">
+      <label class="fx-field"><span>Monto (USD)</span>
+        <input type="text" inputmode="decimal" id="m-amount" autocomplete="off">
+      </label>
+      <label class="fx-field"><span>Categoría</span>
+        <select id="m-cat" class="select"></select>
+      </label>
+      <label class="fx-field"><span>Tipo</span>
+        <select id="m-scope" class="select">
+          <option value="personal">Personal</option>
+          <option value="dcf">DCF</option>
+        </select>
+      </label>
+      <label class="fx-field"><span>Fecha</span>
+        <input type="date" id="m-date" class="text-input">
+      </label>
+      <label class="fx-field"><span>Nota</span>
+        <input type="text" id="m-note" autocomplete="off">
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-danger" id="m-delete" hidden>Eliminar</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn-secondary" id="m-cancel">Cancelar</button>
+      <button type="button" class="btn-primary" id="m-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY: ESCANEANDO ============ -->
+<div class="scan-overlay" id="scan-overlay" hidden>
+  <div class="scan-box">
+    <div class="spinner"></div>
+    <p id="scan-status">Leyendo el recibo…</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
