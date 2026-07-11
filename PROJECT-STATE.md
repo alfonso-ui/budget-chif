@@ -4,7 +4,7 @@
 > Plan completo de la sesión de planeación: ver Decisions log.
 
 ## Current deliverable
-Prueba real en iPhone: instalar desde https://alfonso-ui.github.io/budget-chif/, importar mi-presupuesto.local.json, probar escaneo con API key y usar 1 día.
+Usar la app unos días con gastos reales y probar el escaneo de recibos con la API key. Luego decidir mejoras (¿presupuestos por etiqueta DCF?).
 
 ## Approved / do not touch
 - Decisión de arquitectura: sin login, sin nube, sin build step. Todo en USD.
@@ -37,4 +37,4 @@ Prueba real en iPhone: instalar desde https://alfonso-ui.github.io/budget-chif/,
 - 2026-07-10 · Ideas de agencia (portal aprobaciones "Aprueba", hub admin "Caja") estacionadas en ../APPS-BRIEF.md.
 
 ## Last session
-- 2026-07-10 · MVP completo construido y verificado en preview a 375px (light + dark): captura en segundos, movimientos con edición, resumen con semáforos y safe-to-spend, gráfica 6 meses, convertidor con tasas reales, export/import. Commit 9b540bb. Se detuvo antes del deploy: falta elegir GitHub Pages vs Vercel y probar escaneo con API key real.
+- 2026-07-11 · Sesión completa de lanzamiento: pase visual (ui-rounded, tile héroe, blur, animaciones), 4 temas de color + control Auto/Claro/Oscuro, deploy a GitHub Pages (repo alfonso-ui/budget-chif), app instalada en el iPhone de Alfonso con su presupuesto real importado (12 categorías, $550 variables del PDF "Fonchi Budget"). Fix del zoom de iOS en campos (16px + maximum-scale=1). Transporte quedó sin presupuesto: lo paga DCF y se registra con esa etiqueta. Pendiente: probar escaneo de recibos con API key real.
