@@ -4,7 +4,7 @@
 > Plan completo de la sesión de planeación: ver Decisions log.
 
 ## Current deliverable
-Deploy a hosting estático (GitHub Pages o Vercel) e instalación en el iPhone de Alfonso. El MVP local ya está construido y verificado.
+Prueba real en iPhone: instalar desde https://alfonso-ui.github.io/budget-chif/, importar mi-presupuesto.local.json, probar escaneo con API key y usar 1 día.
 
 ## Approved / do not touch
 - Decisión de arquitectura: sin login, sin nube, sin build step. Todo en USD.
@@ -24,7 +24,7 @@ Deploy a hosting estático (GitHub Pages o Vercel) e instalación en el iPhone d
 - [x] Tab convertidor de monedas (open.er-api.com, caché diario en localStorage)
 - [x] Ajustes (categorías editables, presupuestos, API key, export JSON/CSV, import)
 - [x] PWA (manifest + service worker network-first + íconos 180/192/512)
-- [ ] Deploy a GitHub Pages o Vercel (decidir cuál; se necesita URL https para instalar en iPhone)
+- [x] Deploy a GitHub Pages: https://alfonso-ui.github.io/budget-chif/ (repo alfonso-ui/budget-chif)
 - [ ] Pegar API key de Anthropic en Ajustes y probar escaneo con 3-4 recibos reales
 - [ ] Prueba real en iPhone (agregar a pantalla de inicio, 1 día de uso, verificar offline)
 
@@ -32,6 +32,7 @@ Deploy a hosting estático (GitHub Pages o Vercel) e instalación en el iPhone d
 - 2026-07-10 · Todo en USD, sin multi-moneda en gastos · Alfonso lo pidió explícito; el convertidor es un tab aparte sin relación con los gastos.
 - 2026-07-10 · Escaneo de recibos vía API de Claude directo desde el navegador (key en Ajustes/localStorage, nunca en git) · evita backend; captura manual sigue offline.
 - 2026-07-10 · PWA vanilla sin framework ni build step · Alfonso pidió lo más simple de mantener; se descartó Next.js+Supabase para esta app.
+- 2026-07-11 · Publicada en GitHub Pages (repo público budget-chif); datos personales protegidos vía .gitignore (*.local.json) · el archivo mi-presupuesto.local.json se pasa por AirDrop, nunca por el repo.
 - 2026-07-10 · Ideas de agencia (portal aprobaciones "Aprueba", hub admin "Caja") estacionadas en ../APPS-BRIEF.md.
 
 ## Last session
