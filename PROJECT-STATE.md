@@ -25,8 +25,8 @@ Estreno con Rossana: Alfonso entra en su iPhone (email+contraseña, crear hogar)
 - [x] Ajustes (categorías editables, presupuestos, API key, export JSON/CSV, import)
 - [x] PWA (manifest + service worker network-first + íconos 180/192/512)
 - [x] Deploy a GitHub Pages: https://alfonso-ui.github.io/budget-chif/ (repo alfonso-ui/budget-chif)
-- [ ] Pegar API key de Anthropic en Ajustes y probar escaneo con 3-4 recibos reales
-- [ ] Prueba real en iPhone (agregar a pantalla de inicio, 1 día de uso, verificar offline)
+- [x] Prueba real en iPhone (instalada y en uso)
+- [ ] Estreno v2: login de ambos, hogar creado, aportes del mes registrados
 
 ## Decisions log
 - 2026-07-10 · Todo en USD, sin multi-moneda en gastos · Alfonso lo pidió explícito; el convertidor es un tab aparte sin relación con los gastos.
