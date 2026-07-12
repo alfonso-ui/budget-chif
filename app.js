@@ -297,7 +297,7 @@ $$(".tabbar button").forEach((btn) => {
 
 let amountStr = "";
 let captureScope = state.settings.lastScope || "personal";
-let capturePaidBy = "me"; // 'me' | 'fund' | user_id
+let capturePaidBy = "fund"; // 'fund' | user_id — lo normal es que el gasto de casa salga del fondo
 
 function renderAmount() {
   $("#amount-value").textContent = amountStr === "" ? "0" : amountStr;
@@ -340,10 +340,10 @@ function renderPaidByChips() {
   if (!wrap || captureScope !== "casa") return;
   const me = Sync.userId();
   const opts = [
-    ...(members().map((m) => ({ id: m.user_id, name: m.user_id === me ? myName() : m.display_name }))),
     { id: "fund", name: "Fondo 💰" },
+    ...(members().map((m) => ({ id: m.user_id, name: m.user_id === me ? myName() : m.display_name }))),
   ];
-  if (!opts.some((o) => o.id === capturePaidBy)) capturePaidBy = me || "me";
+  if (!opts.some((o) => o.id === capturePaidBy)) capturePaidBy = "fund";
   wrap.innerHTML = "";
   opts.forEach((o) => {
     const b = document.createElement("button");
@@ -379,7 +379,7 @@ function quickSave(catId) {
     kind: "gasto",
     note: $("#note-input").value.trim(),
     ts: Date.now(),
-    paidBy: captureScope === "casa" ? (capturePaidBy === "me" ? Sync.userId() : capturePaidBy) : null,
+    paidBy: captureScope === "casa" ? capturePaidBy : null,
   };
   state.expenses.push(e);
   persistExpense(e);
@@ -493,13 +493,12 @@ function fillModalCats(scope, selectedId) {
 }
 
 function fillModalPaidBy(selected) {
-  const me = Sync.userId();
   const opts = [
-    ...members().map((m) => ({ id: m.user_id, name: m.display_name })),
     { id: "fund", name: "Fondo 💰" },
+    ...members().map((m) => ({ id: m.user_id, name: m.display_name })),
   ];
   $("#m-paidby").innerHTML = opts
-    .map((o) => `<option value="${o.id}" ${o.id === (selected || me) ? "selected" : ""}>${escapeHtml(o.name)}</option>`)
+    .map((o) => `<option value="${o.id}" ${o.id === (selected || "fund") ? "selected" : ""}>${escapeHtml(o.name)}</option>`)
     .join("");
 }
 
