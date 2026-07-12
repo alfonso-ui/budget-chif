@@ -85,8 +85,8 @@ create policy "leer gastos propios o de casa" on public.expenses
   );
 create policy "crear gastos" on public.expenses
   for insert with check (
-    owner_id = auth.uid()
-    and (scope <> 'casa' or household_id in (select public.my_households()))
+    (owner_id = auth.uid() and scope <> 'casa')
+    or (scope = 'casa' and household_id in (select public.my_households()))
   );
 create policy "editar gastos propios o de casa" on public.expenses
   for update using (
