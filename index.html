@@ -22,11 +22,7 @@
   <section class="tab-panel" id="panel-add" data-active="true">
     <header class="panel-head">
       <h1>Registrar gasto</h1>
-      <button class="btn-scan" id="btn-scan" type="button" aria-label="Escanear recibo con foto">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        Escanear
-      </button>
-      <input type="file" id="scan-input" accept="image/*" capture="environment" hidden>
+      <button class="sync-chip" id="sync-chip" type="button" hidden aria-label="Estado de sincronización">☁️ …</button>
     </header>
 
     <div class="scope-toggle" role="radiogroup" aria-label="Tipo de gasto">
@@ -201,11 +197,6 @@
       <button type="button" class="btn-secondary" id="btn-add-casa-cat">+ Agregar categoría de casa</button>
     </div>
 
-    <h2 class="section-title">Escaneo de recibos</h2>
-    <p class="hint">Pega tu API key de Anthropic (empieza con sk-ant-). Se guarda solo en este dispositivo y nunca se sincroniza.</p>
-    <input type="password" id="api-key" class="text-input" placeholder="sk-ant-..." autocomplete="off">
-    <button type="button" class="btn-secondary" id="btn-save-key">Guardar API key</button>
-
     <h2 class="section-title">Datos</h2>
     <div class="btn-group">
       <button type="button" class="btn-secondary" id="btn-export-json">Exportar respaldo (JSON)</button>
@@ -322,14 +313,6 @@
       <button type="button" class="btn-ghost" id="auth-skip-h">Después</button>
       <p class="hint auth-error" id="auth-error-hogar"></p>
     </div>
-  </div>
-</div>
-
-<!-- ============ OVERLAY: ESCANEANDO ============ -->
-<div class="scan-overlay" id="scan-overlay" hidden>
-  <div class="scan-box">
-    <div class="spinner"></div>
-    <p id="scan-status">Leyendo el recibo…</p>
   </div>
 </div>
 

@@ -176,6 +176,7 @@ function persistExpense(e) {
   if (!e.ownerId && Sync.userId()) e.ownerId = Sync.userId();
   save();
   if (Sync.session) Sync.enqueueExpense(expenseToRow(e));
+  updateSyncChip();
 }
 
 function purgeTombstones() {
@@ -252,6 +253,7 @@ const appHooks = {
   },
   afterSync() {
     purgeTombstones();
+    updateSyncChip();
     refreshCasaVisibility();
     renderCatGrid();
     renderPaidByChips();
@@ -261,8 +263,19 @@ const appHooks = {
   },
 };
 
-function pushUserDoc() { if (Sync.session) Sync.enqueueUserState(); }
-function pushHouseholdDoc() { if (Sync.session) Sync.enqueueHouseholdState(); }
+function pushUserDoc() { if (Sync.session) Sync.enqueueUserState(); updateSyncChip(); }
+function pushHouseholdDoc() { if (Sync.session) Sync.enqueueHouseholdState(); updateSyncChip(); }
+
+function updateSyncChip() {
+  const chip = $("#sync-chip");
+  if (!chip) return;
+  if (!Sync.configured || !Sync.session) { chip.hidden = true; return; }
+  chip.hidden = false;
+  const n = Sync.pendingCount();
+  if (!navigator.onLine) { chip.textContent = "☁️ Sin señal"; chip.dataset.state = "offline"; }
+  else if (n > 0) { chip.textContent = `☁️ ${n} por subir`; chip.dataset.state = "pending"; }
+  else { chip.textContent = "☁️ Al día"; chip.dataset.state = "ok"; }
+}
 
 /* ============================= Navegación ============================= */
 
@@ -806,129 +819,6 @@ function renderTrend() {
   </div>`;
 }
 
-/* ============================= Escaneo de recibos ============================= */
-
-$("#btn-scan").addEventListener("click", () => {
-  if (!state.settings.apiKey) { toast("Primero guarda tu API key en Ajustes"); return; }
-  $("#scan-input").click();
-});
-
-$("#scan-input").addEventListener("change", async (ev) => {
-  const file = ev.target.files[0];
-  ev.target.value = "";
-  if (!file) return;
-  $("#scan-overlay").hidden = false;
-  $("#scan-status").textContent = "Preparando la foto…";
-  try {
-    const { b64, mediaType } = await resizeImage(file, 1568);
-    $("#scan-status").textContent = "Leyendo el recibo…";
-    const data = await extractReceipt(b64, mediaType);
-    $("#scan-overlay").hidden = true;
-    const ts = data.date ? parseISODate(data.date) : Date.now();
-    openModal({
-      amount: data.amount || "",
-      catId: matchCategory(data.suggested_category),
-      scope: captureScope,
-      kind: "gasto",
-      note: data.merchant || "",
-      paidBy: captureScope === "casa" ? (capturePaidBy === "me" ? Sync.userId() : capturePaidBy) : null,
-      ts,
-    }, true);
-  } catch (err) {
-    console.error(err);
-    $("#scan-overlay").hidden = true;
-    toast("No se pudo leer el recibo: " + (err.message || "error"));
-  }
-});
-
-function parseISODate(iso) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
-  if (!m) return Date.now();
-  const ts = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12).getTime();
-  const now = Date.now();
-  if (ts > now + 86400000 || ts < now - 400 * 86400000) return now;
-  return ts;
-}
-
-function matchCategory(name) {
-  const pool = catsFor(captureScope);
-  if (!name) return pool[pool.length - 1].id;
-  const norm = name.toLowerCase();
-  const hit = pool.find((c) => c.id === norm || c.name.toLowerCase() === norm);
-  return hit ? hit.id : pool[pool.length - 1].id;
-}
-
-function resizeImage(file, maxDim) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
-      resolve({ b64: dataUrl.split(",")[1], mediaType: "image/jpeg" });
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("imagen inválida")); };
-    img.src = url;
-  });
-}
-
-async function extractReceipt(b64, mediaType) {
-  const catNames = catsFor(captureScope).map((c) => c.name);
-  const schema = {
-    type: "object",
-    properties: {
-      amount: { type: ["number", "null"], description: "Total pagado, solo el número" },
-      merchant: { type: ["string", "null"], description: "Nombre del comercio" },
-      date: { type: ["string", "null"], description: "Fecha del recibo en formato YYYY-MM-DD" },
-      suggested_category: { type: ["string", "null"], enum: [...catNames, null], description: "Categoría más apropiada" },
-    },
-    required: ["amount", "merchant", "date", "suggested_category"],
-    additionalProperties: false,
-  };
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": state.settings.apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
-    body: JSON.stringify({
-      model: state.settings.model || "claude-opus-4-8",
-      max_tokens: 1024,
-      output_config: { format: { type: "json_schema", schema } },
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: mediaType, data: b64 } },
-          {
-            type: "text",
-            text: `Extrae los datos de este recibo o factura. El monto es el TOTAL pagado en dólares (si la moneda no es USD, devuelve el número tal cual aparece). Categorías disponibles: ${catNames.join(", ")}. Si un dato no se ve, devuélvelo como null.`,
-          },
-        ],
-      }],
-    }),
-  });
-
-  if (!res.ok) {
-    const errBody = await res.json().catch(() => null);
-    const msg = errBody?.error?.message || `HTTP ${res.status}`;
-    if (res.status === 401) throw new Error("API key inválida");
-    throw new Error(msg);
-  }
-  const json = await res.json();
-  if (json.stop_reason === "refusal") throw new Error("la solicitud fue rechazada");
-  const text = (json.content || []).find((b) => b.type === "text")?.text;
-  if (!text) throw new Error("respuesta vacía");
-  return JSON.parse(text);
-}
-
 /* ============================= Convertidor ============================= */
 
 const FX_CURRENCIES = ["USD", "EUR", "MXN", "COP", "CRC", "GTQ", "DOP", "BRL", "ARS", "CLP", "PEN", "GBP", "CAD", "JPY", "CHF", "CNY"];
@@ -1089,7 +979,6 @@ function renderSettings() {
     });
   }
   $("#show-dcf").checked = state.settings.showDcf !== false;
-  $("#api-key").value = state.settings.apiKey || "";
   const n = visibleExpenses().length;
   const pending = Sync.configured && Sync.session ? Sync.pendingCount() : 0;
   $("#data-stats").textContent =
@@ -1116,12 +1005,6 @@ $("#show-dcf").addEventListener("change", (ev) => {
   save();
   pushUserDoc();
   refreshCasaVisibility();
-});
-
-$("#btn-save-key").addEventListener("click", () => {
-  state.settings.apiKey = $("#api-key").value.trim();
-  save();
-  toast(state.settings.apiKey ? "API key guardada" : "API key eliminada");
 });
 
 /* Tema y modo */
@@ -1292,6 +1175,7 @@ $("#auth-join-h").addEventListener("click", async () => {
 });
 
 function finishLogin() {
+  updateSyncChip();
   Sync.migrateLocalIfNeeded(appHooks);
   Sync.syncNow().catch(() => {});
   refreshCasaVisibility();
@@ -1311,6 +1195,12 @@ renderList();
 renderDashboard();
 
 Sync.init(appHooks);
+updateSyncChip();
+setInterval(updateSyncChip, 10000);
+document.getElementById("sync-chip").addEventListener("click", () => {
+  toast("Sincronizando…");
+  Sync.syncNow().then(() => { updateSyncChip(); toast("Al día"); }).catch((e) => toast("Sin conexión: " + e.message));
+});
 
 if (Sync.configured && !Sync.session && !localStorage.getItem("gastos-skiplogin")) {
   showAuth("email");
