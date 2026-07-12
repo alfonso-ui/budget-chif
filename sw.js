@@ -18,9 +18,10 @@ self.addEventListener("fetch", (ev) => {
   const url = new URL(ev.request.url);
   // Nunca interceptar llamadas externas (API de Claude, tasas de cambio)
   if (url.origin !== location.origin) return;
-  // Network-first: siempre la versión más nueva; el caché es el respaldo offline
+  // Network-first con revalidación (cache: no-cache salta el caché HTTP de GitHub Pages);
+  // el caché del SW sigue siendo el respaldo offline
   ev.respondWith(
-    fetch(ev.request)
+    fetch(new Request(ev.request, { cache: "no-cache" }))
       .then((res) => {
         if (res.ok) {
           const clone = res.clone();
