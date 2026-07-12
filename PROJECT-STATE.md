@@ -4,7 +4,7 @@
 > Plan completo de la sesión de planeación: ver Decisions log.
 
 ## Current deliverable
-Gastos v2 (Casa compartida + sync): código listo y probado con stub. Falta: Alfonso crea proyecto Supabase, pega URL+anon key en config.js, corre supabase.sql, y prueba real con Rossana.
+Estreno con Rossana: Alfonso entra en su iPhone (email+contraseña, crear hogar), Rossana instala la PWA y se une con el código. Registrar aportes del mes y primeros gastos de casa.
 
 ## Approved / do not touch
 - Decisión de arquitectura: sin login, sin nube, sin build step. Todo en USD.
@@ -32,8 +32,9 @@ Gastos v2 (Casa compartida + sync): código listo y probado con stub. Falta: Alf
 - 2026-07-10 · Todo en USD, sin multi-moneda en gastos · Alfonso lo pidió explícito; el convertidor es un tab aparte sin relación con los gastos.
 - 2026-07-10 · Escaneo de recibos vía API de Claude directo desde el navegador (key en Ajustes/localStorage, nunca en git) · evita backend; captura manual sigue offline.
 - 2026-07-10 · PWA vanilla sin framework ni build step · Alfonso pidió lo más simple de mantener; se descartó Next.js+Supabase para esta app.
+- 2026-07-11 · v2 verificada E2E contra Supabase real (12/12 checks): auth contraseña, hogar por código, sync cruzado, RLS. Escaneo de recibos ELIMINADO a pedido de Alfonso; en su lugar chip de estado de sync. Auth por email+contraseña (OTP descartado: SMTP de Supabase no entrega a terceros). Proyecto Supabase: jvbrzqqnjaxcsxeoiuht, autoconfirm ON, fix-1 de RLS aplicado. Usuarios prueba1/prueba2@gastos.test se pueden borrar.
 - 2026-07-11 · Publicada en GitHub Pages (repo público budget-chif); datos personales protegidos vía .gitignore (*.local.json) · el archivo mi-presupuesto.local.json se pasa por AirDrop, nunca por el repo.
 - 2026-07-10 · Ideas de agencia (portal aprobaciones "Aprueba", hub admin "Caja") estacionadas en ../APPS-BRIEF.md.
 
 ## Last session
-- 2026-07-11 · Sesión completa de lanzamiento: pase visual (ui-rounded, tile héroe, blur, animaciones), 4 temas de color + control Auto/Claro/Oscuro, deploy a GitHub Pages (repo alfonso-ui/budget-chif), app instalada en el iPhone de Alfonso con su presupuesto real importado (12 categorías, $550 variables del PDF "Fonchi Budget"). Fix del zoom de iOS en campos (16px + maximum-scale=1). Transporte quedó sin presupuesto: lo paga DCF y se registra con esa etiqueta. Pendiente: probar escaneo de recibos con API key real.
+- 2026-07-11 (2ª parte) · Gastos v2 completa: ámbito Casa compartido con Rossana (fondo común: aportes + quién pagó + equidad 50/50), sync total con Supabase (local-first, outbox offline, RLS), login email+contraseña, chip de estado de sync en lugar del botón Escanear (feature eliminada). Verificado E2E contra la base real, 12/12. Pendiente solo el estreno en los dos teléfonos.
