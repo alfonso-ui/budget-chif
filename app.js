@@ -948,6 +948,23 @@ function renderAccount() {
     $("#invite-code").addEventListener("click", () => {
       navigator.clipboard?.writeText(h.invite_code).then(() => toast("Código copiado"));
     });
+    const rename = document.createElement("button");
+    rename.className = "btn-secondary";
+    rename.textContent = "Cambiar mi nombre";
+    rename.addEventListener("click", async () => {
+      const name = prompt("¿Cómo quieres aparecer?", myName());
+      if (!name || !name.trim()) return;
+      try {
+        await Sync.updateMyName(name.trim());
+        toast("Nombre actualizado");
+        renderSettings();
+        renderPaidByChips();
+        renderDashboard();
+      } catch (e) {
+        toast("No se pudo cambiar: " + e.message);
+      }
+    });
+    actions.appendChild(rename);
   } else {
     const b = document.createElement("button");
     b.className = "btn-primary";

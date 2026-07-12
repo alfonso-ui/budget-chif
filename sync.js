@@ -135,6 +135,16 @@ const Sync = (() => {
     return fetchHousehold();
   }
 
+  async function updateMyName(name) {
+    if (!household) throw new Error("sin hogar");
+    await rest(`/memberships?household_id=eq.${household.id}&user_id=eq.${session.user_id}`, {
+      method: "PATCH",
+      headers: { prefer: "return=minimal" },
+      body: JSON.stringify({ display_name: name }),
+    });
+    return fetchHousehold();
+  }
+
   /* ================= Outbox + sync ================= */
 
   function enqueueExpense(row) {
@@ -257,7 +267,7 @@ const Sync = (() => {
     get household() { return household; },
     userId: () => session?.user_id || null,
     signIn, signOut,
-    fetchHousehold, createHousehold, joinHousehold,
+    fetchHousehold, createHousehold, joinHousehold, updateMyName,
     enqueueExpense, enqueueUserState, enqueueHouseholdState,
     syncNow, migrateLocalIfNeeded, init,
     pendingCount: () => Object.keys(outbox.expenses).length,
