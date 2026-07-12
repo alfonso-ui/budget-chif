@@ -1,6 +1,6 @@
 /* Gastos — service worker: app shell offline, cache-first con actualización en segundo plano */
-const CACHE = "gastos-v1";
-const SHELL = ["./", "index.html", "styles.css", "app.js", "manifest.json", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
+const CACHE = "gastos-v2";
+const SHELL = ["./", "index.html", "styles.css", "app.js", "config.js", "sync.js", "manifest.json", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
 
 self.addEventListener("install", (ev) => {
   ev.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

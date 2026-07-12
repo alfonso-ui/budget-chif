@@ -4,14 +4,13 @@
 > Plan completo de la sesión de planeación: ver Decisions log.
 
 ## Current deliverable
-Usar la app unos días con gastos reales y probar el escaneo de recibos con la API key. Luego decidir mejoras (¿presupuestos por etiqueta DCF?).
+Gastos v2 (Casa compartida + sync): código listo y probado con stub. Falta: Alfonso crea proyecto Supabase, pega URL+anon key en config.js, corre supabase.sql, y prueba real con Rossana.
 
 ## Approved / do not touch
 - Decisión de arquitectura: sin login, sin nube, sin build step. Todo en USD.
 
 ## Backlog / parking lot
 - Presupuestos por etiqueta (Personal vs DCF) si Alfonso quiere presupuestar también el gasto del negocio; hoy los presupuestos son por categoría y el filtro del Resumen decide qué gasto cuenta
-- Sincronización entre dispositivos (Supabase) — solo si el hábito pega
 - Import de estados de cuenta del banco (CSV) con categorización asistida
 - Gastos recurrentes/fijos automáticos
 - Recordatorio diario de registro

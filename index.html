@@ -32,6 +32,12 @@
     <div class="scope-toggle" role="radiogroup" aria-label="Tipo de gasto">
       <button type="button" class="scope-btn" data-scope="personal" aria-pressed="true">Personal</button>
       <button type="button" class="scope-btn" data-scope="dcf" aria-pressed="false">DCF</button>
+      <button type="button" class="scope-btn" data-scope="casa" aria-pressed="false" hidden>Casa</button>
+    </div>
+
+    <div class="paidby-row" id="paidby-row" hidden>
+      <span class="paidby-label">Pagó:</span>
+      <div class="paidby-chips" id="paidby-chips"></div>
     </div>
 
     <div class="amount-display" id="amount-display" aria-live="polite">
@@ -70,6 +76,7 @@
         <button type="button" data-scope="all" aria-pressed="true">Todo</button>
         <button type="button" data-scope="personal" aria-pressed="false">Personal</button>
         <button type="button" data-scope="dcf" aria-pressed="false">DCF</button>
+        <button type="button" data-scope="casa" aria-pressed="false" hidden>Casa</button>
       </div>
     </div>
     <div id="list-container"></div>
@@ -85,27 +92,35 @@
         <button type="button" data-scope="all" aria-pressed="false">Todo</button>
         <button type="button" data-scope="personal" aria-pressed="true">Personal</button>
         <button type="button" data-scope="dcf" aria-pressed="false">DCF</button>
+        <button type="button" data-scope="casa" aria-pressed="false" hidden>Casa</button>
       </div>
     </div>
 
     <div class="tile" id="tile-sts">
-      <p class="tile-label">Puedes gastar hoy</p>
+      <p class="tile-label" id="hero-label">Puedes gastar hoy</p>
       <p class="tile-value" id="sts-today">$0</p>
       <p class="tile-sub" id="sts-detail"></p>
+      <button type="button" class="btn-primary btn-aporte" id="btn-aporte" hidden>＋ Abonar al fondo</button>
     </div>
 
     <div class="tile-row">
       <div class="tile tile-half">
-        <p class="tile-label">Gastado este mes</p>
-        <p class="tile-value-sm" id="month-spent">$0</p>
+        <p class="tile-label" id="tile-a-label">Gastado este mes</p>
+        <p class="tile-value-sm" id="tile-a-value">$0</p>
       </div>
       <div class="tile tile-half">
-        <p class="tile-label">Esta semana disponible</p>
-        <p class="tile-value-sm" id="sts-week">$0</p>
+        <p class="tile-label" id="tile-b-label">Esta semana disponible</p>
+        <p class="tile-value-sm" id="tile-b-value">$0</p>
       </div>
     </div>
 
-    <h2 class="section-title">Presupuesto por categoría</h2>
+    <div class="tile" id="equity-card" hidden>
+      <p class="tile-label">Quién ha puesto qué (este mes)</p>
+      <div id="equity-rows"></div>
+      <p class="tile-sub" id="equity-verdict"></p>
+    </div>
+
+    <h2 class="section-title" id="budget-title">Presupuesto por categoría</h2>
     <div id="budget-bars"></div>
 
     <h2 class="section-title">Últimos 6 meses</h2>
@@ -147,6 +162,12 @@
       <h1>Ajustes</h1>
     </header>
 
+    <h2 class="section-title">Cuenta y hogar</h2>
+    <div class="tile" id="account-card">
+      <div id="account-info"></div>
+      <div class="btn-group" id="account-actions"></div>
+    </div>
+
     <h2 class="section-title">Apariencia</h2>
     <div class="scope-filter" id="mode-toggle" role="radiogroup" aria-label="Modo de apariencia">
       <button type="button" data-mode="" aria-pressed="true">Auto</button>
@@ -162,13 +183,26 @@
       <button type="button" data-theme="violeta" aria-pressed="false"><span class="swatch" style="background:#6d5ce6"></span>Violeta</button>
     </div>
 
-    <h2 class="section-title">Categorías y presupuesto mensual</h2>
-    <p class="hint">El presupuesto es en dólares por mes. Déjalo vacío si la categoría no tiene presupuesto.</p>
+    <h2 class="section-title">Secciones</h2>
+    <label class="switch-row">
+      <span>Mostrar DCF (gastos de negocio)</span>
+      <input type="checkbox" id="show-dcf" checked>
+    </label>
+
+    <h2 class="section-title">Mis categorías y presupuesto</h2>
+    <p class="hint">Presupuesto mensual en dólares. Vacío = sin presupuesto.</p>
     <div id="settings-cats"></div>
     <button type="button" class="btn-secondary" id="btn-add-cat">+ Agregar categoría</button>
 
+    <div id="casa-settings" hidden>
+      <h2 class="section-title">Categorías de Casa (compartidas)</h2>
+      <p class="hint">Estas las ven y editan ambos. Los cambios se sincronizan.</p>
+      <div id="settings-casa-cats"></div>
+      <button type="button" class="btn-secondary" id="btn-add-casa-cat">+ Agregar categoría de casa</button>
+    </div>
+
     <h2 class="section-title">Escaneo de recibos</h2>
-    <p class="hint">Pega tu API key de Anthropic (empieza con sk-ant-). Se guarda solo en este dispositivo.</p>
+    <p class="hint">Pega tu API key de Anthropic (empieza con sk-ant-). Se guarda solo en este dispositivo y nunca se sincroniza.</p>
     <input type="password" id="api-key" class="text-input" placeholder="sk-ant-..." autocomplete="off">
     <button type="button" class="btn-secondary" id="btn-save-key">Guardar API key</button>
 
@@ -203,7 +237,7 @@
   </button>
 </nav>
 
-<!-- ============ MODAL: CONFIRMAR ESCANEO / EDITAR ============ -->
+<!-- ============ MODAL: CONFIRMAR / EDITAR ============ -->
 <div class="modal-backdrop" id="modal" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <h2 id="modal-title">Confirmar gasto</h2>
@@ -211,14 +245,18 @@
       <label class="fx-field"><span>Monto (USD)</span>
         <input type="text" inputmode="decimal" id="m-amount" autocomplete="off">
       </label>
-      <label class="fx-field"><span>Categoría</span>
+      <label class="fx-field" id="m-cat-field"><span>Categoría</span>
         <select id="m-cat" class="select"></select>
       </label>
       <label class="fx-field"><span>Tipo</span>
         <select id="m-scope" class="select">
           <option value="personal">Personal</option>
           <option value="dcf">DCF</option>
+          <option value="casa">Casa</option>
         </select>
+      </label>
+      <label class="fx-field" id="m-paidby-field" hidden><span>Pagó</span>
+        <select id="m-paidby" class="select"></select>
       </label>
       <label class="fx-field"><span>Fecha</span>
         <input type="date" id="m-date" class="text-input">
@@ -236,6 +274,65 @@
   </div>
 </div>
 
+<!-- ============ MODAL: APORTE AL FONDO ============ -->
+<div class="modal-backdrop" id="aporte-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aporte-title">
+    <h2 id="aporte-title">Abonar al fondo de casa</h2>
+    <div class="modal-body">
+      <label class="fx-field"><span>Monto (USD)</span>
+        <input type="text" inputmode="decimal" id="a-amount" autocomplete="off">
+      </label>
+      <label class="fx-field"><span>Quién abona</span>
+        <select id="a-who" class="select"></select>
+      </label>
+      <label class="fx-field"><span>Fecha</span>
+        <input type="date" id="a-date" class="text-input">
+      </label>
+    </div>
+    <div class="modal-actions">
+      <span class="spacer"></span>
+      <button type="button" class="btn-secondary" id="a-cancel">Cancelar</button>
+      <button type="button" class="btn-primary" id="a-save">Abonar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY: LOGIN / HOGAR ============ -->
+<div class="auth-overlay" id="auth-overlay" hidden>
+  <div class="auth-card">
+    <div class="auth-step" id="auth-step-email">
+      <h2>Sincroniza tus gastos</h2>
+      <p class="hint">Entra con tu email para respaldar tus datos y compartir el presupuesto de Casa. Te enviamos un código de 6 dígitos.</p>
+      <input type="email" id="auth-email" class="text-input" placeholder="tu@email.com" autocomplete="email" inputmode="email">
+      <button type="button" class="btn-primary" id="auth-send">Enviar código</button>
+      <button type="button" class="btn-ghost" id="auth-skip">Seguir sin cuenta por ahora</button>
+      <p class="hint auth-error" id="auth-error-email"></p>
+    </div>
+
+    <div class="auth-step" id="auth-step-code" hidden>
+      <h2>Revisa tu correo</h2>
+      <p class="hint" id="auth-code-hint">Escribe el código de 6 dígitos.</p>
+      <input type="text" id="auth-code" class="text-input auth-code-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+      <button type="button" class="btn-primary" id="auth-verify">Entrar</button>
+      <button type="button" class="btn-ghost" id="auth-back">Cambiar email</button>
+      <p class="hint auth-error" id="auth-error-code"></p>
+    </div>
+
+    <div class="auth-step" id="auth-step-hogar" hidden>
+      <h2>Tu hogar</h2>
+      <p class="hint">Para compartir el presupuesto de Casa. Uno crea el hogar y el otro se une con el código.</p>
+      <input type="text" id="auth-name" class="text-input" placeholder="Tu nombre (ej. Alfonso)" autocomplete="given-name">
+      <button type="button" class="btn-primary" id="auth-create-h">Crear hogar nuevo</button>
+      <div class="auth-join-row">
+        <input type="text" id="auth-join-code" class="text-input" placeholder="Código de invitación" autocomplete="off">
+        <button type="button" class="btn-secondary" id="auth-join-h">Unirme</button>
+      </div>
+      <button type="button" class="btn-ghost" id="auth-skip-h">Después</button>
+      <p class="hint auth-error" id="auth-error-hogar"></p>
+    </div>
+  </div>
+</div>
+
 <!-- ============ OVERLAY: ESCANEANDO ============ -->
 <div class="scan-overlay" id="scan-overlay" hidden>
   <div class="scan-box">
@@ -246,6 +343,8 @@
 
 <div class="toast" id="toast" hidden></div>
 
+<script src="config.js"></script>
+<script src="sync.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
