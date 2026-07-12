@@ -302,20 +302,12 @@
   <div class="auth-card">
     <div class="auth-step" id="auth-step-email">
       <h2>Sincroniza tus gastos</h2>
-      <p class="hint">Entra con tu email para respaldar tus datos y compartir el presupuesto de Casa. Te enviamos un código de 6 dígitos.</p>
+      <p class="hint">Entra para respaldar tus datos y compartir el presupuesto de Casa. Si es tu primera vez, esto crea tu cuenta con la contraseña que escribas.</p>
       <input type="email" id="auth-email" class="text-input" placeholder="tu@email.com" autocomplete="email" inputmode="email">
-      <button type="button" class="btn-primary" id="auth-send">Enviar código</button>
+      <input type="password" id="auth-pass" class="text-input" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
+      <button type="button" class="btn-primary" id="auth-send">Entrar</button>
       <button type="button" class="btn-ghost" id="auth-skip">Seguir sin cuenta por ahora</button>
       <p class="hint auth-error" id="auth-error-email"></p>
-    </div>
-
-    <div class="auth-step" id="auth-step-code" hidden>
-      <h2>Revisa tu correo</h2>
-      <p class="hint" id="auth-code-hint">Escribe el código de 6 dígitos.</p>
-      <input type="text" id="auth-code" class="text-input auth-code-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
-      <button type="button" class="btn-primary" id="auth-verify">Entrar</button>
-      <button type="button" class="btn-ghost" id="auth-back">Cambiar email</button>
-      <p class="hint auth-error" id="auth-error-code"></p>
     </div>
 
     <div class="auth-step" id="auth-step-hogar" hidden>

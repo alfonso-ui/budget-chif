@@ -1218,11 +1218,9 @@ $("#import-input").addEventListener("change", (ev) => {
 
 /* ============================= Login / hogar ============================= */
 
-let authEmail = "";
-
 function showAuth(step) {
   $("#auth-overlay").hidden = false;
-  ["email", "code", "hogar"].forEach((s) => {
+  ["email", "hogar"].forEach((s) => {
     $("#auth-step-" + s).hidden = s !== step;
   });
   $$(".auth-error").forEach((e) => { e.textContent = ""; });
@@ -1233,42 +1231,29 @@ $("#auth-skip").addEventListener("click", () => {
   localStorage.setItem("gastos-skiplogin", "1");
   hideAuth();
 });
-$("#auth-back").addEventListener("click", () => showAuth("email"));
 $("#auth-skip-h").addEventListener("click", () => { hideAuth(); finishLogin(); });
 
 $("#auth-send").addEventListener("click", async () => {
   const email = $("#auth-email").value.trim().toLowerCase();
+  const pass = $("#auth-pass").value;
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     $("#auth-error-email").textContent = "Escribe un email válido.";
     return;
   }
-  authEmail = email;
+  if (pass.length < 6) {
+    $("#auth-error-email").textContent = "La contraseña necesita al menos 6 caracteres.";
+    return;
+  }
   $("#auth-send").disabled = true;
   try {
-    await Sync.requestOtp(email);
-    $("#auth-code-hint").textContent = `Enviamos un código de 6 dígitos a ${email}. Puede tardar un minuto (revisa spam).`;
-    showAuth("code");
-    $("#auth-code").focus();
-  } catch (e) {
-    $("#auth-error-email").textContent = "No se pudo enviar: " + e.message;
-  } finally {
-    $("#auth-send").disabled = false;
-  }
-});
-
-$("#auth-verify").addEventListener("click", async () => {
-  const code = $("#auth-code").value.trim();
-  if (code.length < 6) { $("#auth-error-code").textContent = "El código tiene 6 dígitos."; return; }
-  $("#auth-verify").disabled = true;
-  try {
-    await Sync.verifyOtp(authEmail, code);
+    await Sync.signIn(email, pass);
     const h = await Sync.fetchHousehold().catch(() => null);
     if (h) { hideAuth(); finishLogin(); }
     else showAuth("hogar");
   } catch (e) {
-    $("#auth-error-code").textContent = "Código incorrecto o vencido: " + e.message;
+    $("#auth-error-email").textContent = "No se pudo entrar: " + e.message;
   } finally {
-    $("#auth-verify").disabled = false;
+    $("#auth-send").disabled = false;
   }
 });
 

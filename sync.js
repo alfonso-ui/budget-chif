@@ -51,12 +51,19 @@ const Sync = (() => {
     saveJson(AUTH_KEY, session);
   }
 
-  async function requestOtp(email) {
-    await authFetch("/auth/v1/otp", { email, create_user: true });
-  }
-
-  async function verifyOtp(email, code) {
-    const data = await authFetch("/auth/v1/verify", { type: "email", email, token: code });
+  async function signIn(email, password) {
+    // 1) intenta entrar; 2) si no existe la cuenta, la crea con esa contraseña
+    try {
+      const data = await authFetch("/auth/v1/token?grant_type=password", { email, password });
+      setSession(data);
+      return session;
+    } catch (e) {
+      if (!/invalid/i.test(e.message)) throw e;
+    }
+    const data = await authFetch("/auth/v1/signup", { email, password });
+    if (!data.access_token) {
+      throw new Error("contraseña incorrecta, o la cuenta requiere confirmación por email (revisa la configuración de Supabase)");
+    }
     setSession(data);
     return session;
   }
@@ -249,7 +256,7 @@ const Sync = (() => {
     get session() { return session; },
     get household() { return household; },
     userId: () => session?.user_id || null,
-    requestOtp, verifyOtp, signOut,
+    signIn, signOut,
     fetchHousehold, createHousehold, joinHousehold,
     enqueueExpense, enqueueUserState, enqueueHouseholdState,
     syncNow, migrateLocalIfNeeded, init,
