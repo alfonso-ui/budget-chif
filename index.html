@@ -82,6 +82,7 @@
   <section class="tab-panel" id="panel-dash">
     <header class="panel-head">
       <h1>Resumen</h1>
+      <button type="button" class="report-btn" id="btn-report">📄 Reporte</button>
     </header>
     <div class="filter-row">
       <div class="scope-filter" role="radiogroup" aria-label="Filtro de tipo" data-for="dash">
@@ -262,6 +263,19 @@
       <button type="button" class="btn-secondary" id="m-cancel">Cancelar</button>
       <button type="button" class="btn-primary" id="m-save">Guardar</button>
     </div>
+  </div>
+</div>
+
+<!-- ============ REPORTE MENSUAL ============ -->
+<div class="report-overlay" id="report-overlay" hidden>
+  <div class="report-sheet">
+    <header class="report-head">
+      <select id="report-month" class="select" aria-label="Mes del reporte"></select>
+      <span class="spacer"></span>
+      <button type="button" class="btn-primary" id="report-share">Compartir</button>
+      <button type="button" class="btn-secondary" id="report-close">✕</button>
+    </header>
+    <div id="report-body"></div>
   </div>
 </div>
 

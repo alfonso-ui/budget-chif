@@ -1115,6 +1115,170 @@ $("#import-input").addEventListener("change", (ev) => {
   reader.readAsText(file);
 });
 
+/* ============================= Reporte mensual ============================= */
+
+function prevMonthKey(mKey) {
+  const [y, m] = mKey.split("-").map(Number);
+  return monthKey(new Date(y, m - 2, 1));
+}
+
+function scopeReportData(mKey, scope) {
+  const gastos = expensesFor(mKey, scope, "gasto");
+  const total = gastos.reduce((s, e) => s + e.amount, 0);
+  const prevTotal = expensesFor(prevMonthKey(mKey), scope, "gasto").reduce((s, e) => s + e.amount, 0);
+  // los presupuestos personales aplican a Personal; DCF se reporta sin presupuesto
+  const budgets = scope === "dcf" ? {} : budgetsFor(scope);
+  const byCat = {};
+  gastos.forEach((e) => { byCat[e.catId] = (byCat[e.catId] || 0) + e.amount; });
+  const cats = catsFor(scope)
+    .map((c) => ({ cat: c, spent: byCat[c.id] || 0, budget: Number(budgets[c.id]) || 0 }))
+    .filter((r) => r.spent > 0 || r.budget > 0)
+    .sort((a, b) => b.spent - a.spent);
+  const budgetTotal = cats.reduce((s, r) => s + r.budget, 0);
+  const top = gastos.slice().sort((a, b) => b.amount - a.amount).slice(0, 3);
+  const data = { gastos, total, prevTotal, cats, budgetTotal, top };
+  if (scope === "casa") {
+    const aportes = expensesFor(mKey, "casa", "aporte");
+    data.aportado = aportes.reduce((s, e) => s + e.amount, 0);
+    data.fromFund = gastos.filter((e) => e.paidBy === "fund").reduce((s, e) => s + e.amount, 0);
+    data.fondoFinal = data.aportado - data.fromFund;
+    const totals = {};
+    members().forEach((m) => { totals[m.user_id] = { aporte: 0, bolsillo: 0 }; });
+    aportes.forEach((e) => { if (totals[e.paidBy]) totals[e.paidBy].aporte += e.amount; });
+    gastos.forEach((e) => { if (e.paidBy !== "fund" && totals[e.paidBy]) totals[e.paidBy].bolsillo += e.amount; });
+    data.equity = Object.entries(totals).map(([uid2, t]) => ({
+      name: memberName(uid2), total: t.aporte + t.bolsillo, ...t,
+    }));
+  }
+  return data;
+}
+
+function deltaHtml(total, prevTotal) {
+  if (prevTotal <= 0) return "";
+  const pct = Math.round((total - prevTotal) / prevTotal * 100);
+  if (pct === 0) return `<span class="k-sub">igual que el mes pasado</span>`;
+  const cls = pct > 0 ? "k-delta-up" : "k-delta-down";
+  return `<span class="k-sub ${cls}">${pct > 0 ? "+" : ""}${pct}% vs mes anterior (${money0(prevTotal)})</span>`;
+}
+
+function expenseLabel(e, scope) {
+  const c = catById(e.catId, scope);
+  const d = new Date(e.ts).toLocaleDateString("es-PA", { day: "numeric", month: "short" });
+  return `${c.emoji} ${e.note || e.merchant || c.name} · ${d}`;
+}
+
+function renderScopeSection(title, mKey, scope) {
+  const d = scopeReportData(mKey, scope);
+  if (!d.gastos.length && !(scope === "casa" && d.aportado > 0)) {
+    return `<section class="report-scope"><h2>${title}</h2><p class="report-empty">Sin movimientos este mes.</p></section>`;
+  }
+  let kpis = `
+    <div class="report-kpi"><div class="k-label">Gastado</div><div class="k-value">${money(d.total)}</div>${deltaHtml(d.total, d.prevTotal)}</div>`;
+  if (d.budgetTotal > 0 && scope !== "casa") {
+    const diff = d.budgetTotal - d.total;
+    kpis += `<div class="report-kpi"><div class="k-label">Presupuesto</div><div class="k-value">${money0(d.budgetTotal)}</div>
+      <span class="k-sub ${diff < 0 ? "k-delta-up" : "k-delta-down"}">${diff < 0 ? "excedido por " + money0(-diff) : "sobraron " + money0(diff)}</span></div>`;
+  }
+  if (scope === "casa") {
+    kpis += `<div class="report-kpi"><div class="k-label">Aportado</div><div class="k-value">${money(d.aportado)}</div></div>
+      <div class="report-kpi"><div class="k-label">Cierre del fondo</div><div class="k-value">${money(d.fondoFinal)}</div>
+      <span class="k-sub">el fondo pagó ${money0(d.fromFund)}</span></div>`;
+  }
+
+  let catRows = d.cats.map((r) => {
+    let right;
+    if (r.budget > 0) {
+      const over = r.spent > r.budget;
+      right = `<span class="${over ? "rt-over" : ""}">${money0(r.spent)} <span class="rt-ok">/ ${money0(r.budget)}</span>${over ? " ⚠️" : ""}</span>`;
+    } else {
+      right = `<span>${money0(r.spent)}</span>`;
+    }
+    return `<div class="rt-row"><span>${r.cat.emoji} ${escapeHtml(r.cat.name)}</span>${right}</div>`;
+  }).join("");
+
+  let equity = "";
+  if (scope === "casa" && d.equity && d.equity.length) {
+    equity = `<div class="report-table">${d.equity.map((m) =>
+      `<div class="rt-row"><span><strong>${escapeHtml(m.name)}</strong> <span class="rt-ok">(aportó ${money0(m.aporte)}${m.bolsillo ? " + " + money0(m.bolsillo) + " de bolsillo" : ""})</span></span><span>${money(m.total)}</span></div>`
+    ).join("")}</div>`;
+  }
+
+  const topRows = d.top.length ? `<div class="report-table">${d.top.map((e) =>
+    `<div class="rt-row"><span>${escapeHtml(expenseLabel(e, scope))}</span><span>${money(e.amount)}</span></div>`
+  ).join("")}</div>` : "";
+
+  return `<section class="report-scope">
+    <h2>${title}</h2>
+    <div class="report-kpis">${kpis}</div>
+    ${catRows ? `<div class="report-table">${catRows}</div>` : ""}
+    ${equity}
+    ${topRows}
+  </section>`;
+}
+
+let reportMonth = null;
+
+function defaultReportMonth() {
+  const now = new Date();
+  // primeros 5 días del mes → reporte del mes anterior (cierre)
+  return now.getDate() <= 5 ? prevMonthKey(monthKey(now)) : monthKey(now);
+}
+
+function renderReport() {
+  const sel = $("#report-month");
+  const opts = monthOptions();
+  if (!reportMonth || !opts.includes(reportMonth)) reportMonth = opts.includes(defaultReportMonth()) ? defaultReportMonth() : opts[0];
+  sel.innerHTML = opts.map((k) => `<option value="${k}" ${k === reportMonth ? "selected" : ""}>Reporte · ${monthLabel(k)}</option>`).join("");
+  const showDcf = state.settings.showDcf !== false;
+  let html = renderScopeSection("💚 Personal", reportMonth, "personal");
+  if (showDcf) html += renderScopeSection("💼 DCF", reportMonth, "dcf");
+  if (casaEnabled()) html += renderScopeSection("🏡 Casa", reportMonth, "casa");
+  $("#report-body").innerHTML = html;
+}
+
+function reportAsText() {
+  const mLabel = monthLabel(reportMonth);
+  const lines = [`📊 Cierre de ${mLabel}`];
+  const addScope = (title, scope) => {
+    const d = scopeReportData(reportMonth, scope);
+    if (!d.gastos.length && !(scope === "casa" && (d.aportado || 0) > 0)) return;
+    lines.push("", `${title}`);
+    lines.push(`Gastado: ${money(d.total)}${d.prevTotal > 0 ? ` (mes anterior ${money0(d.prevTotal)})` : ""}`);
+    if (scope !== "casa" && d.budgetTotal > 0) {
+      const diff = d.budgetTotal - d.total;
+      lines.push(diff >= 0 ? `Presupuesto ${money0(d.budgetTotal)}: sobraron ${money0(diff)} ✅` : `Presupuesto ${money0(d.budgetTotal)}: excedido por ${money0(-diff)} ⚠️`);
+    }
+    if (scope === "casa") {
+      lines.push(`Aportado: ${money(d.aportado)} · El fondo pagó: ${money0(d.fromFund)} · Cierre del fondo: ${money(d.fondoFinal)}`);
+      d.equity.forEach((m) => lines.push(`${m.name} puso ${money(m.total)}`));
+    }
+    d.cats.slice(0, 6).forEach((r) => {
+      lines.push(`· ${r.cat.name}: ${money0(r.spent)}${r.budget ? ` de ${money0(r.budget)}${r.spent > r.budget ? " ⚠️" : ""}` : ""}`);
+    });
+  };
+  addScope("💚 PERSONAL", "personal");
+  if (state.settings.showDcf !== false) addScope("💼 DCF", "dcf");
+  if (casaEnabled()) addScope("🏡 CASA", "casa");
+  return lines.join("\n");
+}
+
+$("#btn-report").addEventListener("click", () => {
+  reportMonth = null;
+  renderReport();
+  $("#report-overlay").hidden = false;
+});
+$("#report-close").addEventListener("click", () => { $("#report-overlay").hidden = true; });
+$("#report-month").addEventListener("change", (ev) => { reportMonth = ev.target.value; renderReport(); });
+$("#report-share").addEventListener("click", async () => {
+  const text = reportAsText();
+  if (navigator.share) {
+    try { await navigator.share({ text }); } catch { /* usuario canceló */ }
+  } else {
+    await navigator.clipboard?.writeText(text);
+    toast("Reporte copiado al portapapeles");
+  }
+});
+
 /* ============================= Login / hogar ============================= */
 
 function showAuth(step) {
